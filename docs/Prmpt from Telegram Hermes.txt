@@ -1,0 +1,46 @@
+Prmpt from Telegram Hermes
+
+prompt 1:
+*"Bertindaklah sebagai Senior Fullstack Engineer. Saya ingin membuat aplikasi pendaftaran vaksinasi bernama Toktok Health menggunakan Vite dan Supabase. Tolong buatkan skrip SQL migrasi untuk Supabase yang mencakup tabel berikut:
+ 1. events (id, title, quota, reserved_quota, location, event_date, status).
+ 2. registrations (id, event_id, registration_type [perorangan/kelompok], nik, nip, full_name, phone, gender, dob, address, email, status [pending/approved/rejected], created_at).
+ Berikan juga aturan constraint dasar dan indeks untuk pencarian NIK/NIP agar cepat."*
+
+prompt 2:
+"Sekarang buatkan komponen form pendaftaran React (menggunakan Tailwind CSS dan Vite) untuk peserta. Form ini harus memiliki validasi real-time* sebelum data dikirim ke Supabase:
+ 1. NIK: Harus tepat 16 digit angka.
+ 2. NIP (Opsional/Wajib jika ASN): Harus tepat 18 digit angka dengan pola susunan 8-6-1-3.
+ 3. Tanggal Lahir & Jenis Kelamin: Harus sinkron dengan format NIK (digit ke-7 sampai 12).
+ 4. Email: Validasi format email, berikan peringatan khusus jika pengguna tidak sengaja mengetik .con alih-alih .com.
+ Jika validasi gagal, tampilkan pesan error yang jelas di bawah input masing-masing."*
+
+prompt3 :
+ *"Buatkan halaman Dashboard Admin menggunakan React dan Tailwind. Halaman ini berfungsi untuk:
+ 1. Menampilkan daftar peserta yang masuk melalui jalur 'Pendaftaran Sementara' (status: pending).
+ 2. Menampilkan detail data peserta (NIK, NIP, Nama, Email, Domisili).
+3. Menyediakan tombol Approve (mengubah status menjadi approved dan memasukkan ke kuota resmi) serta tombol Reject (dengan catatan penolakan).
+ 4. Mengambil data langsung secara real-time dari tabel registrations di Supabase menggunakan Supabase Client."*
+
+
+
+
+Prompt4 :
+*"Bertindaklah sebagai Backend/Database Engineer. Saya ingin membuat Supabase Database Webhook yang akan memanggil endpoint HTTP/Webhook Hermes setiap kali ada baris baru (INSERT) yang masuk ke tabel registrations. 
+ Tolong berikan panduan SQL atau konfigurasi yang diperlukan di Supabase untuk mengirim payload JSON berisi data peserta baru (nama, nik, nip, email) ke URL webhook eksternal."*
+
+
+Prompt 5 :
+ *"Buatkan skrip Python menggunakan pustaka supabase yang akan berjalan di lingkungan Hermes. Skrip ini bertugas untuk:
+ 1. Terhubung ke database Supabase menggunakan SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY.
+ 2. Mengambil semua data peserta yang berstatus pending (antrean sementara).
+ 3. Melakukan audit massal (cek duplikasi NIK, validasi panjang NIP 18 digit, dan cek typo email .con).
+ 4. Mengembalikan hasil ringkasan audit dalam bentuk format teks/JSON siap kirim ke Telegram."*
+
+prompt6 :
+ "Buatkan konfigurasi atau kode skrip Python untuk Hermes yang dapat dijadwalkan (cron job*) berjalan otomatis setiap hari pukul 09.00 pagi. Skrip ini harus:
+ 1. Mengambil jumlah data peserta dengan status pending di Supabase.
+ 2. Jika jumlahnya > 0, buat pesan pengingat otomatis.
+ 3. Kirim pesan tersebut ke channel/chat Telegram operasional admin Toktok Health."*
+
+
+
