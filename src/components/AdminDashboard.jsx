@@ -516,10 +516,14 @@ export default function AdminDashboard() {
 
       if (error) throw error;
 
-      showToast(`❌ Pendaftaran berhasil DITOLAK (Rejected).`);
+      showToast(`❌ Pendaftaran berhasil DITOLAK (Rejected). Membuka tab data Ditolak.`);
       setRejectingId(null);
       setRejectionReason('');
       if (selectedParticipant?.id === rejectingId) setSelectedParticipant(null);
+      
+      // Auto-switch to 'rejected' filter view so user immediately sees the rejected row!
+      setActiveTab('queue');
+      setStatusFilter('rejected');
       fetchAllData();
     } catch (err) {
       alert('Gagal menolak pendaftaran: ' + err.message);
@@ -605,9 +609,9 @@ export default function AdminDashboard() {
       {/* Navigation Sub-Tabs */}
       <div className="p-1.5 rounded-2xl bg-slate-900 border border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
         <button
-          onClick={() => setActiveTab('queue')}
+          onClick={() => { setActiveTab('queue'); setStatusFilter('pending'); }}
           className={`py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
-            activeTab === 'queue'
+            activeTab === 'queue' && statusFilter !== 'rejected'
               ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
           }`}
@@ -653,40 +657,80 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards (Interactive Quick Filters) */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+        <button
+          type="button"
+          onClick={() => { setActiveTab('queue'); setStatusFilter('pending'); }}
+          className={`p-4 rounded-2xl text-left transition-all border ${
+            activeTab === 'queue' && statusFilter === 'pending'
+              ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/20'
+              : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+          }`}
+        >
           <span className="text-xs text-slate-400 font-medium block">Antrean Temporary</span>
           <span className="text-2xl font-black text-amber-400 mt-1 block">{stats.pending}</span>
           <span className="text-[10px] text-slate-500 mt-0.5 block">Menunggu Approval</span>
-        </div>
+        </button>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-amber-500/30 bg-amber-500/5">
+        <button
+          type="button"
+          onClick={() => setActiveTab('fix')}
+          className={`p-4 rounded-2xl text-left transition-all border ${
+            activeTab === 'fix'
+              ? 'bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/20'
+              : 'bg-slate-900 border-amber-500/30 hover:border-amber-500/50'
+          }`}
+        >
           <span className="text-xs text-amber-300 font-medium block">Peserta Terverifikasi Fix</span>
           <span className="text-2xl font-black text-amber-400 mt-1 block">{stats.fixCount}</span>
           <span className="text-[10px] text-amber-400/80 mt-0.5 block">Nomor Antrean & Multi-Dosis</span>
-        </div>
+        </button>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-blue-500/20">
-          <span className="text-xs text-slate-400 font-medium block">Total Event Massal</span>
+        <button
+          type="button"
+          onClick={() => { setActiveTab('queue'); setStatusFilter('rejected'); }}
+          className={`p-4 rounded-2xl text-left transition-all border ${
+            activeTab === 'queue' && statusFilter === 'rejected'
+              ? 'bg-rose-500/15 border-rose-500 ring-2 ring-rose-500/20'
+              : 'bg-slate-900 border-rose-500/30 hover:border-rose-500/50'
+          }`}
+        >
+          <span className="text-xs text-rose-300 font-medium block">Pendaftaran Ditolak</span>
+          <span className="text-2xl font-black text-rose-400 mt-1 block">{stats.rejected}</span>
+          <span className="text-[10px] text-rose-400/80 mt-0.5 block">Klik untuk Lihat Tab Rejected</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('events')}
+          className={`p-4 rounded-2xl text-left transition-all border ${
+            activeTab === 'events'
+              ? 'bg-blue-500/15 border-blue-500 ring-2 ring-blue-500/20'
+              : 'bg-slate-900 border-blue-500/20 hover:border-blue-500/40'
+          }`}
+        >
+          <span className="text-xs text-slate-400 font-medium block">Total Event</span>
           <span className="text-2xl font-black text-blue-400 mt-1 block">{eventsList.length}</span>
           <span className="text-[10px] text-blue-400/80 mt-0.5 block">EVT-001 s/d EVT-{String(eventsList.length).padStart(3, '0')}</span>
-        </div>
+        </button>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-purple-500/20">
+        <button
+          type="button"
+          onClick={() => setActiveTab('reminders')}
+          className={`p-4 rounded-2xl text-left transition-all border ${
+            activeTab === 'reminders'
+              ? 'bg-purple-500/15 border-purple-500 ring-2 ring-purple-500/20'
+              : 'bg-slate-900 border-purple-500/20 hover:border-purple-500/40'
+          }`}
+        >
           <span className="text-xs text-slate-400 font-medium block">Dosis Terjadwal</span>
           <span className="text-2xl font-black text-purple-400 mt-1 block">{upcomingSchedules.length}</span>
           <span className="text-[10px] text-purple-400/80 mt-0.5 block">Dosis 2 & 3 Mendatang</span>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-slate-900 border border-rose-500/20">
-          <span className="text-xs text-slate-400 font-medium block">Anomali (Hermes Alert)</span>
-          <span className="text-2xl font-black text-rose-400 mt-1 block">{stats.anomaly}</span>
-          <span className="text-[10px] text-rose-400/80 mt-0.5 block">Perlu Audit Korpri</span>
-        </div>
+        </button>
       </div>
 
-      {/* Search Toolbar */}
+      {/* Search Toolbar & Status Filters */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -707,17 +751,24 @@ export default function AdminDashboard() {
 
         {activeTab === 'queue' && (
           <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
-            {['pending', 'approved', 'rejected', 'all'].map((st) => (
+            {[
+              { id: 'pending', label: `PENDING (${stats.pending})` },
+              { id: 'rejected', label: `DITOLAK (${stats.rejected})` },
+              { id: 'approved', label: `APPROVED (${stats.approved})` },
+              { id: 'all', label: `SEMUA (${stats.total})` }
+            ].map((st) => (
               <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
-                  statusFilter === st
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                key={st.id}
+                onClick={() => setStatusFilter(st.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all whitespace-nowrap ${
+                  statusFilter === st.id
+                    ? st.id === 'rejected'
+                      ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 ring-2 ring-rose-500/50'
+                      : 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-500/50'
                     : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
-                {st}
+                {st.label}
               </button>
             ))}
           </div>
