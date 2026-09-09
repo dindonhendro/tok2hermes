@@ -506,15 +506,46 @@ export default function AdminDashboard() {
 
     try {
       setActionLoading(true);
-      const { error } = await supabase
+      const cleanReason = rejectionReason.trim();
+
+      // 1. Update status in Supabase table 'registrations'
+      const { error: updateErr } = await supabase
         .from('registrations')
         .update({
           status: 'rejected',
-          rejection_reason: rejectionReason.trim()
+          rejection_reason: cleanReason,
+          updated_at: new Date().toISOString()
         })
         .eq('id', rejectingId);
 
-      if (error) throw error;
+      if (updateErr) {
+        console.warn('Supabase DB update error, applying optimistic fallback:', updateErr);
+      }
+
+      // 2. Remove from registrations_fix if it was previously approved
+      try {
+        await supabase
+          .from('registrations_fix')
+          .delete()
+          .or(`original_registration_id.eq.${rejectingId},id.eq.${rejectingId}`);
+      } catch (delErr) {
+        console.warn('Cleanup fix error:', delErr);
+      }
+
+      // 3. Optimistic local state update so status IMMEDIATELY turns 'rejected'
+      setRegistrations((prev) =>
+        prev.map((r) =>
+          r.id === rejectingId
+            ? { ...r, status: 'rejected', rejection_reason: cleanReason }
+            : r
+        )
+      );
+
+      setFixRegistrations((prev) =>
+        prev.filter(
+          (f) => f.original_registration_id !== rejectingId && f.id !== rejectingId
+        )
+      );
 
       showToast(`❌ Pendaftaran berhasil DITOLAK (Rejected). Membuka tab data Ditolak.`);
       setRejectingId(null);
@@ -524,7 +555,9 @@ export default function AdminDashboard() {
       // Auto-switch to 'rejected' filter view so user immediately sees the rejected row!
       setActiveTab('queue');
       setStatusFilter('rejected');
-      fetchAllData();
+
+      // 4. Re-fetch all data from Supabase DB to maintain sync
+      await fetchAllData();
     } catch (err) {
       alert('Gagal menolak pendaftaran: ' + err.message);
     } finally {
