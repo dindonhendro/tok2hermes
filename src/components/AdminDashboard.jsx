@@ -26,7 +26,8 @@ import {
   Send,
   CheckCircle,
   PlayCircle,
-  StopCircle
+  StopCircle,
+  FileText
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -332,11 +333,19 @@ export default function AdminDashboard() {
     }, 4500);
   };
 
-  // Toggle Event Status ('active' <-> 'completed')
+  // Toggle Event Status ('draft' -> 'active' -> 'completed')
   const handleToggleEventStatus = async (eventId, currentStatus, eventTitle) => {
     try {
       setActionLoading(true);
-      const newStatus = currentStatus === 'completed' ? 'active' : 'completed';
+      let newStatus = 'active';
+      if (currentStatus === 'draft') {
+        newStatus = 'active';
+      } else if (currentStatus === 'active') {
+        newStatus = 'completed';
+      } else {
+        newStatus = 'active';
+      }
+      
       const { error } = await supabase
         .from('events')
         .update({ status: newStatus })
@@ -344,7 +353,11 @@ export default function AdminDashboard() {
 
       if (error) throw error;
 
-      showToast(`📌 Status Event "${eventTitle}" diperbarui menjadi: ${newStatus.toUpperCase()}`);
+      const toastMsg = currentStatus === 'draft'
+        ? `✅ Event "${eventTitle}" TELAH DISETUJUI & DITAYANGKAN (ACTIVE)`
+        : `📌 Status Event "${eventTitle}" diperbarui menjadi: ${newStatus.toUpperCase()}`;
+
+      showToast(toastMsg);
       fetchAllData();
     } catch (err) {
       alert('Gagal mengupdate status event: ' + err.message);
@@ -1132,7 +1145,11 @@ export default function AdminDashboard() {
 
                     {/* Status Badge */}
                     <td className="py-4 px-4">
-                      {evt.status === 'completed' ? (
+                      {evt.status === 'draft' ? (
+                        <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-extrabold inline-flex items-center gap-1">
+                          <FileText className="w-3.5 h-3.5 text-amber-400" /> DRAFT (Menunggu Approval)
+                        </span>
+                      ) : evt.status === 'completed' ? (
                         <span className="px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-[11px] font-extrabold inline-flex items-center gap-1">
                           <CheckCircle className="w-3.5 h-3.5 text-blue-400" /> SELESAI (Completed)
                         </span>
@@ -1148,12 +1165,18 @@ export default function AdminDashboard() {
                       <button
                         onClick={() => handleToggleEventStatus(evt.id, evt.status, evt.title)}
                         className={`px-3.5 py-1.5 rounded-xl font-bold transition-all text-xs inline-flex items-center gap-1.5 ${
-                          evt.status === 'completed'
+                          evt.status === 'draft'
+                            ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/20 ring-2 ring-amber-500/30'
+                            : evt.status === 'completed'
                             ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
                             : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20'
                         }`}
                       >
-                        {evt.status === 'completed' ? (
+                        {evt.status === 'draft' ? (
+                          <>
+                            <CheckCircle className="w-3.5 h-3.5" /> Approve & Tayangkan
+                          </>
+                        ) : evt.status === 'completed' ? (
                           <>
                             <PlayCircle className="w-3.5 h-3.5" /> Aktifkan Kembali
                           </>

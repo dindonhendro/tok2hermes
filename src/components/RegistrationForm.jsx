@@ -66,6 +66,7 @@ export default function RegistrationForm() {
   const [errors, setErrors] = useState({});
   const [warnings, setWarnings] = useState({});
   const [nikParsedInfo, setNikParsedInfo] = useState(null);
+  const [nipParsedInfo, setNipParsedInfo] = useState(null);
 
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -204,20 +205,25 @@ export default function RegistrationForm() {
         const parsedNip = parseNIP(value);
         if (!parsedNip.isValid) {
           newErrors.nip = parsedNip.error;
+          setNipParsedInfo(null);
         } else {
           delete newErrors.nip;
+          setNipParsedInfo(parsedNip);
         }
       } else {
-        // Optional for public
+        // Optional for public, but if filled must be valid 18 digits
         if (value && value.trim().length > 0) {
           const parsedNip = parseNIP(value);
           if (!parsedNip.isValid) {
             newErrors.nip = parsedNip.error;
+            setNipParsedInfo(null);
           } else {
             delete newErrors.nip;
+            setNipParsedInfo(parsedNip);
           }
         } else {
           delete newErrors.nip;
+          setNipParsedInfo(null);
         }
       }
     }
@@ -310,10 +316,26 @@ export default function RegistrationForm() {
       return;
     }
 
-    // Run all validations
+    // 1. Strict Synchronous NIK Validation
+    const nikResult = parseNIK(formData.nik);
+    if (!nikResult.isValid) {
+      setSubmitError(`Validasi NIK Gagal: ${nikResult.error}`);
+      setErrors((prev) => ({ ...prev, nik: nikResult.error }));
+      return;
+    }
+
+    // 2. Strict Synchronous NIP Validation (Mandatory for ASN, optional for public)
+    if (formData.registrationType === 'perorangan_internal' || (formData.nip && formData.nip.trim().length > 0)) {
+      const nipResult = parseNIP(formData.nip);
+      if (!nipResult.isValid) {
+        setSubmitError(`Validasi NIP Gagal: ${nipResult.error}`);
+        setErrors((prev) => ({ ...prev, nip: nipResult.error }));
+        return;
+      }
+    }
+
+    // Run remaining field validations
     validateField('fullName', formData.fullName);
-    validateField('nik', formData.nik);
-    validateField('nip', formData.nip);
     validateField('dob', formData.dob);
     validateField('gender', formData.gender);
     validateField('email', formData.email);
@@ -645,7 +667,7 @@ export default function RegistrationForm() {
                 <span>NIK (16 Digit) *</span>
                 {nikParsedInfo?.isValid && (
                   <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Termuat dari NIK
+                    <Sparkles className="w-3 h-3" /> NIK Terverifikasi
                   </span>
                 )}
               </label>
@@ -659,9 +681,9 @@ export default function RegistrationForm() {
                   placeholder="Contoh: 3171012508950001"
                   className={`w-full px-4 py-3 rounded-xl bg-slate-950 border text-white text-sm focus:outline-none transition-all ${
                     errors.nik
-                      ? 'border-rose-500 focus:border-rose-500'
+                      ? 'border-rose-500 focus:border-rose-500 ring-2 ring-rose-500/20'
                       : nikParsedInfo?.isValid
-                      ? 'border-emerald-500 focus:border-emerald-500'
+                      ? 'border-emerald-500 focus:border-emerald-500 ring-2 ring-emerald-500/20'
                       : 'border-slate-800 focus:border-emerald-500'
                   }`}
                 />
@@ -669,32 +691,58 @@ export default function RegistrationForm() {
                   <CheckCircle2 className="w-5 h-5 text-emerald-400 absolute right-3 top-3.5" />
                 )}
               </div>
+              {nikParsedInfo?.isValid && (
+                <p className="mt-1.5 text-[11px] text-emerald-400 font-medium flex items-center gap-1.5 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  <span>{nikParsedInfo.infoText}</span>
+                </p>
+              )}
               {errors.nik && (
                 <p className="mt-1.5 text-xs text-rose-400 flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5" /> {errors.nik}
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.nik}
                 </p>
               )}
             </div>
 
             {/* NIP Input (Mandatory if ASN, Optional for Public) */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                NIP ASN (18 Digit) {formData.registrationType === 'perorangan_internal' ? '*' : '(Opsional)'}
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>NIP ASN (18 Digit) {formData.registrationType === 'perorangan_internal' ? '*' : '(Opsional)'}</span>
+                {nipParsedInfo?.isValid && (
+                  <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> NIP Terverifikasi
+                  </span>
+                )}
               </label>
-              <input
-                type="text"
-                name="nip"
-                maxLength={18}
-                value={formData.nip}
-                onChange={handleChange}
-                placeholder="Contoh: 199508252020121001"
-                className={`w-full px-4 py-3 rounded-xl bg-slate-950 border text-white text-sm focus:outline-none transition-all ${
-                  errors.nip ? 'border-rose-500' : 'border-slate-800 focus:border-emerald-500'
-                }`}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="nip"
+                  maxLength={18}
+                  value={formData.nip}
+                  onChange={handleChange}
+                  placeholder="Contoh: 199508252020121001"
+                  className={`w-full px-4 py-3 rounded-xl bg-slate-950 border text-white text-sm focus:outline-none transition-all ${
+                    errors.nip
+                      ? 'border-rose-500 focus:border-rose-500 ring-2 ring-rose-500/20'
+                      : nipParsedInfo?.isValid
+                      ? 'border-emerald-500 focus:border-emerald-500 ring-2 ring-emerald-500/20'
+                      : 'border-slate-800 focus:border-emerald-500'
+                  }`}
+                />
+                {nipParsedInfo?.isValid && (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 absolute right-3 top-3.5" />
+                )}
+              </div>
+              {nipParsedInfo?.isValid && (
+                <p className="mt-1.5 text-[11px] text-emerald-400 font-medium flex items-center gap-1.5 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  <span>{nipParsedInfo.infoText}</span>
+                </p>
+              )}
               {errors.nip && (
                 <p className="mt-1.5 text-xs text-rose-400 flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5" /> {errors.nip}
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.nip}
                 </p>
               )}
             </div>

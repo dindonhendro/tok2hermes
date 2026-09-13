@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import RegistrationForm from './components/RegistrationForm';
 import AdminDashboard from './components/AdminDashboard';
-import { Syringe, LayoutDashboard, UserPlus, FileCode, ShieldCheck } from 'lucide-react';
+import ExcelAdminControlPanel from './components/ExcelAdminControlPanel';
+import { Syringe, LayoutDashboard, UserPlus, FileCode, ShieldCheck, FileSpreadsheet } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('register'); // 'register' | 'admin'
+  const [activeTab, setActiveTab] = useState('register'); // 'register' | 'admin' | 'excel_control'
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between">
       {/* Top Header / Navigation */}
       <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
           
           {/* Logo & Subtitle */}
           <div className="flex items-center gap-3">
@@ -26,7 +27,7 @@ export default function App() {
           </div>
 
           {/* Navigation Controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setActiveTab('register')}
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
@@ -51,14 +52,26 @@ export default function App() {
               Dashboard Admin
             </button>
 
+            <button
+              onClick={() => setActiveTab('excel_control')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                activeTab === 'excel_control'
+                  ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/25 ring-2 ring-cyan-500/30'
+                  : 'bg-cyan-950/40 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900/60'
+              }`}
+            >
+              <FileSpreadsheet className="w-4 h-4 text-cyan-400" />
+              Control Panel Excel
+            </button>
+
             <a
-              href="/docs/PRDInit.md"
+              href="/docs/PRDforadmin.md"
               target="_blank"
               rel="noreferrer"
-              className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all flex items-center gap-1.5 hidden sm:flex"
+              className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all flex items-center gap-1.5 hidden md:flex"
             >
               <FileCode className="w-4 h-4 text-slate-400" />
-              PRD Dokumen
+              PRD Admin
             </a>
           </div>
         </div>
@@ -68,8 +81,10 @@ export default function App() {
       <main className="py-6 flex-1">
         {activeTab === 'register' ? (
           <RegistrationForm />
-        ) : (
+        ) : activeTab === 'admin' ? (
           <AdminDashboard />
+        ) : (
+          <ExcelAdminControlPanel />
         )}
       </main>
 
