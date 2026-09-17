@@ -43,47 +43,8 @@ function formatIndonesianDate(dateStr) {
   return dateStr;
 }
 
-// Fallback seed files in case database table is initializing
-const DEFAULT_FILES = [
-  {
-    id: 'f0000000-0000-0000-0000-000000000001',
-    filename: 'Pendaftaran_Kolektif_Kemenkeu_Batch1.xlsx',
-    file_path: '~/.hermes/toktok_uploads/Pendaftaran_Kolektif_Kemenkeu_Batch1.xlsx',
-    file_size_bytes: 45820,
-    uploaded_by: 'Ami (Kemenkeu PIC)',
-    status: 'audited',
-    total_rows: 5,
-    valid_rows: 4,
-    anomaly_rows: 1,
-    file_data_json: [
-      { no: 1, nama: 'Budi Santoso', nik: '3171012508950001', nip: '199508252020121001', instansi: 'Kemenkeu RI', email: 'budi.santoso@kemenkeu.go.id', phone: '081299887766', status_audit: 'VALID' },
-      { no: 2, nama: 'Siti Rahmawati', nik: '3201026011960002', nip: '199611202021012002', instansi: 'Kemenkeu RI', email: 'siti.rahma@kemenkeu.go.id', phone: '081388776655', status_audit: 'VALID' },
-      { no: 3, nama: 'Ahmad Hidayat', nik: '3171011504900003', nip: '199004152018031003', instansi: 'Kemenkeu RI', email: 'ahmad.hidayat@gmai.com', phone: '081577665544', status_audit: 'ANOMALY', alasan: 'Typo Domain Email @gmai.com' },
-      { no: 4, nama: 'Dewi Lestari', nik: '3578014509920004', nip: '199209052019022004', instansi: 'Kemenkeu RI', email: 'dewi.lestari@kemenkeu.go.id', phone: '081766554433', status_audit: 'VALID' },
-      { no: 5, nama: 'Eko Prasetyo', nik: '3374011201880005', nip: '198801122015041005', instansi: 'Kemenkeu RI', email: 'eko.prasetyo@kemenkeu.go.id', phone: '081955443322', status_audit: 'VALID' }
-    ],
-    audit_summary: { scanned_at: '2026-09-13T09:00:00Z', total: 5, valid: 4, anomaly: 1, remarks: 'Ditemukan 1 email typo domain (@gmai.com)' },
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'f0000000-0000-0000-0000-000000000002',
-    filename: 'Usulan_Vaksinasi_Korpri_Depok.xlsx',
-    file_path: '~/.hermes/toktok_uploads/Usulan_Vaksinasi_Korpri_Depok.xlsx',
-    file_size_bytes: 28400,
-    uploaded_by: 'Kharisma (Korpri Depok)',
-    status: 'pending_audit',
-    total_rows: 3,
-    valid_rows: 0,
-    anomaly_rows: 0,
-    file_data_json: [
-      { no: 1, nama: 'Bambang Wijaya', nik: '3276011406850001', nip: '198506142012011001', instansi: 'Pemkot Depok', email: 'bambang@depok.go.id', phone: '081211223344' },
-      { no: 2, nama: 'Rina Kartika', nik: '3276015502930002', nip: '199302152019032002', instansi: 'Pemkot Depok', email: 'rina@depok.go.id', phone: '081322334455' },
-      { no: 3, nama: 'Doni Pratama', nik: '3276010101900003', nip: '199001012018011003', instansi: 'Pemkot Depok', email: 'doni@depok.go.id', phone: '081433445566' }
-    ],
-    audit_summary: null,
-    created_at: new Date(Date.now() - 3600000 * 2).toISOString()
-  }
-];
+// Default empty files array for clean state
+const DEFAULT_FILES = [];
 
 export default function ExcelAdminControlPanel() {
   // Auth Shield State

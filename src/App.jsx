@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import RegistrationForm from './components/RegistrationForm';
 import AdminDashboard from './components/AdminDashboard';
 import ExcelAdminControlPanel from './components/ExcelAdminControlPanel';
-import { Syringe, LayoutDashboard, UserPlus, FileCode, ShieldCheck, FileSpreadsheet } from 'lucide-react';
+import StockDashboard from './components/StockDashboard';
+import { Syringe, LayoutDashboard, UserPlus, FileCode, ShieldCheck, FileSpreadsheet, BarChart3 } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('register'); // 'register' | 'admin' | 'excel_control'
+  const [activeTab, setActiveTab] = useState('register'); // 'register' | 'admin' | 'excel_control' | 'stock_dashboard'
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between">
@@ -64,14 +65,26 @@ export default function App() {
               Control Panel Excel
             </button>
 
+            <button
+              onClick={() => setActiveTab('stock_dashboard')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                activeTab === 'stock_dashboard'
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/25 ring-2 ring-purple-500/30'
+                  : 'bg-purple-950/40 border border-purple-500/30 text-purple-300 hover:bg-purple-900/60'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4 text-purple-400" />
+              Dashboard Stok
+            </button>
+
             <a
-              href="/docs/PRDforadmin.md"
+              href="/docs/PRDstok.md"
               target="_blank"
               rel="noreferrer"
               className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all flex items-center gap-1.5 hidden md:flex"
             >
               <FileCode className="w-4 h-4 text-slate-400" />
-              PRD Admin
+              PRD Stok
             </a>
           </div>
         </div>
@@ -83,8 +96,10 @@ export default function App() {
           <RegistrationForm />
         ) : activeTab === 'admin' ? (
           <AdminDashboard />
-        ) : (
+        ) : activeTab === 'excel_control' ? (
           <ExcelAdminControlPanel />
+        ) : (
+          <StockDashboard />
         )}
       </main>
 
