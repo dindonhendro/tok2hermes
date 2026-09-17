@@ -114,13 +114,44 @@ export function calculateStockMetrics(rawRows) {
     const sku = String(getColValue(row, ['SKU', 'Kode SKU']) || kodeBarang).trim();
     const satuan = String(getColValue(row, ['Satuan', 'Unit', 'UOM']) || 'Dosis').trim();
 
-    const stokSaatIni = cleanCurrency(getColValue(row, ['Stok Saat Ini', 'Stok Fisik', 'Stok', 'Current Stock']));
-    const stokJual = cleanCurrency(getColValue(row, ['Stok Jual', 'Stok Alokasi', 'Alokasi']));
-    const stokJualKasir = cleanCurrency(getColValue(row, ['Stok Jual Kasir', 'Stok Kasir', 'Terjual Kasir', 'Terjual']));
+    // Extract raw numerical values
+    const rawStokSaatIni = getColValue(row, ['Stok Saat Ini', 'Stok Fisik', 'Stok', 'Current Stock']);
+    const stokJual = cleanCurrency(getColValue(row, ['Stok Awal Jual', 'Stok Jual', 'Stok Alokasi', 'Alokasi']));
+    const stokJualKasir = cleanCurrency(getColValue(row, ['Stok Terjual Kasir', 'Stok Jual Kasir', 'Stok Kasir', 'Terjual Kasir', 'Terjual']));
     const stokMasukTransfer = cleanCurrency(getColValue(row, ['Stok Masuk (Transfer)', 'Stok Masuk', 'Transfer Masuk']));
     const stokKeluarTransfer = cleanCurrency(getColValue(row, ['Stok Keluar (Transfer)', 'Stok Keluar', 'Transfer Keluar']));
+    const stokRetur = cleanCurrency(getColValue(row, ['Stok Retur', 'Retur Keluar']));
+    const stokReturMasuk = cleanCurrency(getColValue(row, ['Stok Retur Masuk', 'Retur Masuk']));
+    const rawStokKonversiMasuk = getColValue(row, ['Stok Konversi Masuk', 'Konversi Masuk']);
+    const stokKonversiKeluar = cleanCurrency(getColValue(row, ['Stok Konversi Keluar', 'Konversi Keluar']));
     const stokSO = cleanCurrency(getColValue(row, ['Stok SO', 'Selisih SO', 'Selisih Opname']));
-    const stokSK = cleanCurrency(getColValue(row, ['Stok SK', 'Stok Rusak']));
+    const stokSB = cleanCurrency(getColValue(row, ['Stok SB', 'Satuan Besar', 'Box']));
+    const stokSM = cleanCurrency(getColValue(row, ['Stok SM', 'Satuan Sedang']));
+    const rawStokSK = getColValue(row, ['Stok SK', 'Satuan Kecil', 'Vial']);
+
+    // Formula 2: Packaging Unit Conversion (1 Box = 10 Vial)
+    let stokSK = cleanCurrency(rawStokSK);
+    if (stokSK === 0 && stokSB > 0) {
+      stokSK = stokSB * 10;
+    }
+
+    let stokKonversiMasuk = cleanCurrency(rawStokKonversiMasuk);
+    if (stokKonversiMasuk === 0 && stokKonversiKeluar > 0) {
+      stokKonversiMasuk = stokKonversiKeluar * 10;
+    }
+
+    // Formula 1: Main Physical Stock Formula
+    // Stok Saat Ini = Stok Masuk (Transfer) - Stok Keluar (Transfer) - Stok Terjual Kasir - Stok Retur + Stok SO
+    let stokSaatIni = 0;
+    if (rawStokSaatIni !== null && rawStokSaatIni !== undefined && rawStokSaatIni !== '') {
+      stokSaatIni = cleanCurrency(rawStokSaatIni);
+    } else {
+      stokSaatIni = stokMasukTransfer - stokKeluarTransfer - stokJualKasir - stokRetur + stokSO;
+    }
+
+    // Formula 3: Supporting Calculations
+    const netTransfer = stokMasukTransfer - stokKeluarTransfer;
+    const netReturDistributor = stokReturMasuk - stokRetur;
 
     return {
       id: `row-${idx + 1}`,
@@ -136,8 +167,16 @@ export function calculateStockMetrics(rawRows) {
       stokJualKasir,
       stokMasukTransfer,
       stokKeluarTransfer,
+      stokRetur,
+      stokReturMasuk,
+      stokKonversiMasuk,
+      stokKonversiKeluar,
       stokSO,
-      stokSK
+      stokSB,
+      stokSM,
+      stokSK,
+      netTransfer,
+      netReturDistributor
     };
   });
 
@@ -169,6 +208,9 @@ export function calculateStockMetrics(rawRows) {
         stokKeluar: 0,
         netTransfer: 0,
         totalSelisihSO: 0,
+        stokRetur: 0,
+        stokSB: 0,
+        stokSK: 0,
         batchSet: new Set()
       };
     }
@@ -180,6 +222,9 @@ export function calculateStockMetrics(rawRows) {
     g.stokKeluar += r.stokKeluarTransfer;
     g.netTransfer += (r.stokMasukTransfer - r.stokKeluarTransfer);
     g.totalSelisihSO += r.stokSO;
+    g.stokRetur += r.stokRetur;
+    g.stokSB += r.stokSB;
+    g.stokSK += r.stokSK;
     g.batchSet.add(r.noBatch);
   });
 

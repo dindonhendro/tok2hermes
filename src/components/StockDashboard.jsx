@@ -21,6 +21,7 @@ import { parseStockFile, calculateStockMetrics, exportStockSummaryToExcel } from
 import FaskesTable from './FaskesTable';
 import BatchChart from './BatchChart';
 import { supabase } from '../lib/supabaseClient';
+import SupabaseStockHistoryModal from './SupabaseStockHistoryModal';
 
 
 
@@ -32,6 +33,7 @@ export default function StockDashboard() {
   const [toast, setToast] = useState(null);
   const [savingToSupabase, setSavingToSupabase] = useState(false);
   const [showSqlModal, setShowSqlModal] = useState(false);
+  const [showSupabaseDbModal, setShowSupabaseDbModal] = useState(false);
 
   // Initial state is clean (empty). User can upload a file or load sample data.
   useEffect(() => {
@@ -259,7 +261,12 @@ export default function StockDashboard() {
 
         {/* Global Actions */}
         <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto">
-
+          <button
+            onClick={() => setShowSupabaseDbModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 font-bold text-xs flex items-center gap-1.5 transition-all shadow-lg shadow-purple-600/10"
+          >
+            <Database className="w-3.5 h-3.5 text-purple-400" /> Lihat DB Supabase
+          </button>
 
           <button
             onClick={handleExport}
@@ -627,6 +634,12 @@ CREATE POLICY "Allow all access" ON public.laporan_stok FOR ALL TO anon, authent
           </div>
         </div>
       )}
+
+      {/* SUPABASE LIVE DATABASE & STOCK HISTORY MODAL */}
+      <SupabaseStockHistoryModal
+        isOpen={showSupabaseDbModal}
+        onClose={() => setShowSupabaseDbModal(false)}
+      />
 
     </div>
   );
