@@ -1,7 +1,6 @@
 # Vercel Ignore Rules
 .env
 .env.local
-.git/
 supabase/
 docs/
 scripts/
